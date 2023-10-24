@@ -3,7 +3,7 @@
     "type": "git",
     "url": "https://github.com/desktop/desktop.git"
   },
-  "description": "GitHub Desktop build dependencies",
+  "description": "GitHub Desktop build dependencies test",
   "scripts": {
     "cli": "ts-node --require ./app/test/globals.ts --require ./app/src/cli/dev-commands-global.ts app/src/cli/main.ts",
     "check:eslint": "tsc -P eslint-rules/",
