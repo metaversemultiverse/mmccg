@@ -79,6 +79,11 @@ interface IExpandableCommitSummaryState {
    * the avatar stack and calculated whenever the commit prop changes.
    */
   readonly avatarUsers: ReadonlyArray<IAvatarUser>
+
+  /**
+   * The height of the commit summary description.
+   */
+  readonly descriptionHeight: number
 }
 
 /**
@@ -95,7 +100,8 @@ interface IExpandableCommitSummaryState {
  */
 function createState(
   isOverflowed: boolean,
-  props: IExpandableCommitSummaryProps
+  props: IExpandableCommitSummaryProps,
+  descriptionHeight: number
 ): IExpandableCommitSummaryState {
   const { emoji, repository, selectedCommits } = props
   const tokenizer = new Tokenizer(emoji, repository)
@@ -118,7 +124,14 @@ function createState(
     (a, b) => a.email === b.email && a.name === b.name
   )
 
-  return { isOverflowed, summary, body, avatarUsers, hasEmptySummary }
+  return {
+    isOverflowed,
+    summary,
+    body,
+    avatarUsers,
+    hasEmptySummary,
+    descriptionHeight,
+  }
 }
 
 function getCommitSummary(selectedCommits: ReadonlyArray<Commit>) {
@@ -144,6 +157,10 @@ export class ExpandableCommitSummary extends React.Component<
   private updateOverflowTimeoutId: NodeJS.Immediate | null = null
   private descriptionRef: HTMLDivElement | null = null
 
+  private startWidth: number | null = null
+  private startX: number | null = null
+  private preventExpand: boolean = false
+
   private getCountCommitsNotInDiff = memoizeOne(
     (
       selectedCommits: ReadonlyArray<Commit>,
@@ -164,7 +181,7 @@ export class ExpandableCommitSummary extends React.Component<
   public constructor(props: IExpandableCommitSummaryProps) {
     super(props)
 
-    this.state = createState(false, props)
+    this.state = createState(false, props, 33)
 
     const ResizeObserverClass: typeof ResizeObserver = (window as any)
       .ResizeObserver
@@ -243,7 +260,80 @@ export class ExpandableCommitSummary extends React.Component<
     )
   }
 
+  /**
+   * Handler for when the user presses the mouse button over the resize
+   * handle.
+   */
+  private handleDragStart = (e: React.MouseEvent<any>) => {
+    this.startX = e.clientY
+    this.startWidth = this.state.descriptionHeight
+
+    document.addEventListener('mousemove', this.handleDragMove)
+    document.addEventListener('mouseup', this.handleDragStop)
+
+    e.preventDefault()
+  }
+
+  /**
+   * Handler for when the user moves the mouse while dragging
+   */
+  private handleDragMove = (e: MouseEvent) => {
+    if (this.startWidth === null || this.startX === null) {
+      return
+    }
+
+    const deltaX = e.clientY - this.startX
+    const newWidth = this.startWidth + deltaX
+
+    this.onResize(newWidth)
+    e.preventDefault()
+  }
+
+  /**
+   * Handler for when the user lets go of the mouse button during
+   * a resize operation.
+   */
+  private handleDragStop = (e: MouseEvent) => {
+    document.removeEventListener('mousemove', this.handleDragMove)
+    document.removeEventListener('mouseup', this.handleDragStop)
+    e.preventDefault()
+    setTimeout(() => {
+      this.preventExpand = false
+    }, 200)
+  }
+
+  private onResize = (descriptionHeight: number) => {
+    this.preventExpand = true
+    this.setState({ descriptionHeight })
+  }
+
+  private renderGrabbableExpander() {
+    const { selectedCommits, isExpanded } = this.props
+    if (selectedCommits.length > 1) {
+      return null
+    }
+
+    return (
+      <Button
+        onClick={isExpanded ? this.onCollapse : this.onExpand}
+        className="draggable-expander"
+        tooltip={isExpanded ? 'Click to Collapse' : 'Click to Expand'}
+        ariaExpanded={isExpanded}
+        ariaLabel={
+          isExpanded ? 'Collapse commit details' : 'Expand commit details'
+        }
+        ariaControls="expandable-commit-summary"
+        onMouseDown={this.handleDragStart}
+      >
+        <Octicon symbol={OcticonSymbol.grabber} />
+      </Button>
+    )
+  }
+
   private onExpand = () => {
+    if (this.preventExpand) {
+      return
+    }
     this.props.onExpandChanged(true)
   }
 
@@ -282,7 +372,7 @@ export class ExpandableCommitSummary extends React.Component<
         messageEquals(nextCommit, this.props.selectedCommits[i])
       )
     ) {
-      this.setState(createState(false, nextProps))
+      this.setState(createState(false, nextProps, this.state.descriptionHeight))
     }
   }
 
@@ -315,7 +405,13 @@ export class ExpandableCommitSummary extends React.Component<
     })
 
     return (
-      <div className={className} ref={this.onDescriptionRef}>
+      <div
+        className={className}
+        ref={this.onDescriptionRef}
+        style={{
+          height: this.props.isExpanded ? 'auto' : this.state.descriptionHeight,
+        }}
+      >
         <div
           className="ecs-description-scroll-view"
           ref={this.onDescriptionScrollViewRef}
@@ -545,6 +641,7 @@ export class ExpandableCommitSummary extends React.Component<
         {this.renderDescription()}
         {this.renderMetaItems()}
         {this.renderCommitsNotReachable()}
+        {this.renderGrabbableExpander()}
       </div>
     )
   }

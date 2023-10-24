@@ -27,6 +27,12 @@ export interface IButtonProps {
    */
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
+  /**
+   * A function that's called when the user moves over the button with
+   * a pointer device.
+   */
+  readonly onMouseDown?: (event: React.MouseEvent<HTMLButtonElement>) => void
+
   /** Called on key down. */
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLButtonElement>) => void
 
@@ -217,6 +223,7 @@ export class Button extends React.Component<IButtonProps, {}> {
         ref={this.innerButtonRef}
         tabIndex={this.props.tabIndex}
         onMouseEnter={disabled ? preventDefault : this.props.onMouseEnter}
+        onMouseDown={disabled ? preventDefault : this.props.onMouseDown}
         role={this.props.role}
         aria-expanded={this.props.ariaExpanded}
         aria-disabled={disabled ? 'true' : undefined}

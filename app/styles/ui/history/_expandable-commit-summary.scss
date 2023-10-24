@@ -39,6 +39,29 @@
     }
   }
 
+  .draggable-expander {
+    background: transparent;
+    padding: 0;
+    border: none;
+    border-top: 1px solid var(--box-border-color);
+    color: var(--text-color);
+    font-size: inherit;
+    font-weight: normal;
+    font-family: inherit;
+    margin-left: var(--spacing);
+    height: auto;
+    margin-bottom: -10px;
+    margin-left: -10px;
+    border-radius: 0;
+    margin-right: -10px;
+    background-color: var(--box-alt-background-color);
+
+    svg {
+      vertical-align: text-top;
+      transform: rotate(90deg);
+    }
+  }
+
   .ecs-description {
     display: flex;
     position: relative;
