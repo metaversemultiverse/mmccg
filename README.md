@@ -1,4 +1,4 @@
-# [GitHub Desktop](https://desktop.github.com) A change
+# [GitHub Desktop](https://desktop.github.com) A change a change that conflicts
 test test
 [GitHub Desktop](https://desktop.github.com/) is an open source [Electron](https://www.electronjs.org/)-based
 GitHub app. It is written in [TypeScript](https://www.typescriptlang.org) and
