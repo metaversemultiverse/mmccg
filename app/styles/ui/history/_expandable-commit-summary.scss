@@ -77,6 +77,25 @@
       white-space: pre-line;
       min-height: 0;
     }
+
+    .description-expander {
+      z-index: 1;
+      position: absolute;
+      bottom: -5px;
+      left: 40%;
+      font-size: var(--font-size-sm);
+      height: 20px;
+      line-height: 12px;
+      opacity: 0;
+      transition: opacity 0.2s linear;
+      padding: 2px var(--spacing);
+    }
+
+    &:hover {
+      .description-expander {
+        opacity: 1;
+      }
+    }
   }
 
   .ecs-meta {
@@ -158,6 +177,10 @@
       .ecs-description-text {
         background-color: var(--box-alt-background-color);
         padding: var(--spacing-half);
+      }
+
+      .description-expander {
+        display: none;
       }
     }
 

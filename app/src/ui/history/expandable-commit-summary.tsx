@@ -327,6 +327,14 @@ export class ExpandableCommitSummary extends React.Component<
             text={this.state.body}
           />
         </div>
+        <Button
+          onClick={this.onExpand}
+          className="description-expander"
+          ariaExpanded={this.props.isExpanded}
+          ariaControls="expandable-commit-summary"
+        >
+          Expand for more
+        </Button>
       </div>
     )
   }
