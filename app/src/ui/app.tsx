@@ -3549,3 +3549,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 function NoRepositorySelected() {
   return <div className="panel blankslate">No repository selected</div>
 }
+
+// Let's see what copilot will suggest I add
+// function NoRepositorySelected() {
