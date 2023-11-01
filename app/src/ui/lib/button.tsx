@@ -167,6 +167,13 @@ export interface IButtonProps {
 
   /** Whether the button's tooltip opens on click  */
   readonly openTooltipOnClick?: boolean
+
+  /** Whether or not an ancestor component is focused, used in case we want
+   * the tooltip to be shown when it's focused. Examples of this are how we
+   * want to show the tooltip for file status icons when files in the file
+   * list are focused.
+   */
+  readonly tooltipAncestorFocused?: boolean
 }
 
 /**
@@ -237,6 +244,7 @@ export class Button extends React.Component<IButtonProps, {}> {
             delay={disabled ? 0 : undefined}
             onlyWhenOverflowed={this.props.onlyShowTooltipWhenOverflowed}
             openOnTargetClick={this.props.openTooltipOnClick}
+            ancestorFocused={this.props.tooltipAncestorFocused}
           >
             {tooltip}
           </Tooltip>

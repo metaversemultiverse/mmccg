@@ -19,6 +19,7 @@ import memoizeOne from 'memoize-one'
 import { Button } from '../lib/button'
 import { Avatar } from '../lib/avatar'
 import { CopyButton } from '../copy-button'
+import { TooltipDirection } from '../lib/tooltip'
 
 interface IExpandableCommitSummaryProps {
   readonly repository: Repository
@@ -75,6 +76,11 @@ interface IExpandableCommitSummaryState {
   readonly isOverflowed: boolean
 
   /**
+   * Whether or not the commit body text is being hovered over by the mouse.
+   */
+  readonly descriptionIsHovered: boolean
+
+  /**
    * The avatars associated with this commit. Used when rendering
    * the avatar stack and calculated whenever the commit prop changes.
    */
@@ -95,6 +101,7 @@ interface IExpandableCommitSummaryState {
  */
 function createState(
   isOverflowed: boolean,
+  descriptionIsHovered: boolean,
   props: IExpandableCommitSummaryProps
 ): IExpandableCommitSummaryState {
   const { emoji, repository, selectedCommits } = props
@@ -118,7 +125,14 @@ function createState(
     (a, b) => a.email === b.email && a.name === b.name
   )
 
-  return { isOverflowed, summary, body, avatarUsers, hasEmptySummary }
+  return {
+    isOverflowed,
+    descriptionIsHovered,
+    summary,
+    body,
+    avatarUsers,
+    hasEmptySummary,
+  }
 }
 
 function getCommitSummary(selectedCommits: ReadonlyArray<Commit>) {
@@ -164,7 +178,7 @@ export class ExpandableCommitSummary extends React.Component<
   public constructor(props: IExpandableCommitSummaryProps) {
     super(props)
 
-    this.state = createState(false, props)
+    this.state = createState(false, false, props)
 
     const ResizeObserverClass: typeof ResizeObserver = (window as any)
       .ResizeObserver
@@ -215,8 +229,27 @@ export class ExpandableCommitSummary extends React.Component<
     }
   }
 
+  private onDescriptionMouseEnter = () => {
+    if (this.props.isExpanded || !this.state.isOverflowed) {
+      return
+    }
+    this.setState({ descriptionIsHovered: true })
+  }
+
+  private onDescriptionMouseLeave = () => {
+    this.setState({ descriptionIsHovered: false })
+  }
+
   private onDescriptionRef = (ref: HTMLDivElement | null) => {
     this.descriptionRef = ref
+    this.descriptionRef?.addEventListener(
+      'mouseenter',
+      this.onDescriptionMouseEnter
+    )
+    this.descriptionRef?.addEventListener(
+      'mouseleave',
+      this.onDescriptionMouseLeave
+    )
   }
 
   private renderExpander() {
@@ -235,6 +268,8 @@ export class ExpandableCommitSummary extends React.Component<
           isExpanded ? 'Collapse commit details' : 'Expand commit details'
         }
         ariaControls="expandable-commit-summary"
+        tooltipAncestorFocused={this.state.descriptionIsHovered}
+        toolTipDirection={TooltipDirection.SOUTH}
       >
         <Octicon
           symbol={isExpanded ? OcticonSymbol.fold : OcticonSymbol.unfold}
@@ -282,7 +317,9 @@ export class ExpandableCommitSummary extends React.Component<
         messageEquals(nextCommit, this.props.selectedCommits[i])
       )
     ) {
-      this.setState(createState(false, nextProps))
+      this.setState(
+        createState(false, this.state.descriptionIsHovered, nextProps)
+      )
     }
   }
 
